@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management Form</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="container">
+        <div class="card">
+
+            <div class="card-top">
+                <h2>Task Management</h2>
+                <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="task-info-label">
+                Task ID:
+                <span id="display-task-id">{{ current_task.task_id if current_task else '' }}</span>
+            </div>
+
+            <div class="task-info-label">
+                Employee Name:
+                <span id="display-emp-name">{{ current_task.employee_name if current_task else '' }}</span>
+                (ID: <span id="display-emp-id">{{ current_task.employee_id if current_task else '' }}</span>)
+            </div>
+
+            <form method="POST" action="{{ url_for('dashboard') }}">
+
+                <div class="form-group">
+                    <label for="task_title">Task Title:</label>
+                    <select id="task_title" name="task_title" onchange="updateTaskDetails(this.value)">
+                        {% for task in tasks %}
+                            <option value="{{ task.task_title }}"
+                                {% if current_task and task.task_title == current_task.task_title %}selected{% endif %}>
+                                {{ task.task_title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="completed">Completed:</label>
+                    <select id="completed" name="completed">
+                        <option value="true" {% if current_task and current_task.completed == 'true' %}selected{% endif %}>true</option>
+                        <option value="false" {% if current_task and current_task.completed == 'false' %}selected{% endif %}>false</option>
+                    </select>
+                </div>
+
+                <button type="submit">Submit</button>
+
+            </form>
+
+        </div>
+    </div>
+
+    <script>
+        const taskData = {{ tasks | tojson | safe }};
+
+        function updateTaskDetails(title) {
+            const data = taskData.find(task => task.task_title === title);
+            if (data) {
+                document.getElementById('display-task-id').innerText = data.task_id;
+                document.getElementById('display-emp-name').innerText = data.employee_name;
+                document.getElementById('display-emp-id').innerText = data.employee_id;
+                document.getElementById('completed').value = data.completed;
+            }
+        }
+    </script>
+
+</body>
+</html>
